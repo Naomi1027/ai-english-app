@@ -5,7 +5,7 @@ export function SideMenu() {
     return (
         <div className="w-64 bg-orange-600 text-white">
             <div className="flex items-center p-4 text-2xl font-bold">
-                <HiOutlineChat className="w-8 h-8 mr-2" />
+                <img src="/favicon.png" alt="Chat Icon" className="w-8 h-8 mr-2" />
                 AIEnglishApp
             </div>
             <ul className="space-y-2">
