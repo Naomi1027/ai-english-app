@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use App\Http\Requests\StoreThreadRequest;
 use App\Http\Requests\UpdateThreadRequest;
 use App\Models\Message;
 use App\Models\Thread;
@@ -33,9 +32,13 @@ class ThreadController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreThreadRequest $request)
+    public function store()
     {
-        //
+        $thread = Thread::create([
+            'title' => now()->format('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->route('thread.show', ['threadId' => $thread->id]);
     }
 
     /**
