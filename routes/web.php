@@ -27,5 +27,7 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/top', [ThreadController::class, 'index'])->name('top');
-Route::get('/thread/{threadId}', [ThreadController::class, 'show'])->name('thread.show');
+Route::middleware('auth')->group(function () {
+    Route::get('/top', [ThreadController::class, 'index'])->name('top');
+    Route::get('/thread/{threadId}', [ThreadController::class, 'show'])->name('thread.show');
+});
