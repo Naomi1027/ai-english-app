@@ -3,12 +3,12 @@ import { SideMenu } from '../../Components/SideMenu'
 import { LogoutButton } from '../../Components/LogoutButton'
 import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
 
-export default function Show({}) {
+export default function Top({ threads }) { // threadsを受け取る
     return (
         <>
             <Head title="Show" />
             <div className="flex h-screen overflow-hidden">
-                <SideMenu />
+                <SideMenu threads={threads} />
                 <div className="flex-1 p-4 bg-gray-200 text-white relative">
                     <div className="flex justify-end">
                         <LogoutButton />

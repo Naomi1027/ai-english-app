@@ -1,7 +1,7 @@
 import { Sidebar } from "flowbite-react";
 import { HiPlus, HiChatAlt2, HiOutlineChat } from "react-icons/hi";
 
-export function SideMenu() {
+export function SideMenu({ threads }) { // threadsを受け取る
     return (
         <div className="w-64 bg-orange-600 text-white h-screen overflow-y-auto">
             <div className="flex items-center p-4 text-2xl font-bold">
@@ -15,16 +15,11 @@ export function SideMenu() {
                         <span className="ml-3">新規スレッド作成</span>
                     </a>
                 </li>
-                {[
-                    "英会話スレッド1",
-                    "英会話スレッド2",
-                    "英会話スレッド3",
-                    "英会話スレッド4",
-                ].map((thread, index) => (
+                {threads.map((thread, index) => ( // threadsをループして表示
                     <li key={index}>
                         <a href="#" className="flex items-center p-2 text-base font-normal text-white hover:bg-orange-500">
                             <HiChatAlt2 className="w-6 h-6" />
-                            <span className="ml-3">{thread}</span>
+                            <span className="ml-3">{thread.title}</span> {/* タイトルを表示 */}
                         </a>
                     </li>
                 ))}
