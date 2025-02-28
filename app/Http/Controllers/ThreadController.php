@@ -15,7 +15,10 @@ class ThreadController extends Controller
      */
     public function index(): InertiaResponse
     {
-        return Inertia::render('Top');
+        $threads = Thread::orderBy('id', 'desc')->get(); // スレッドデータを取得
+        return Inertia::render('Top', [
+            'threads' => $threads, // フロントエンドに渡す
+        ]);
     }
 
     /**
@@ -39,7 +42,10 @@ class ThreadController extends Controller
      */
     public function show(Thread $thread)
     {
-        return Inertia::render('Thread/Show');
+        $threads = Thread::orderBy('id', 'desc')->get(); // スレッドデータを取得
+        return Inertia::render('Thread/Show', [
+            'threads' => $threads, // フロントエンドに渡す
+        ]);
     }
 
     /**

@@ -2,12 +2,12 @@ import { Head } from '@inertiajs/react'
 import { SideMenu } from '../Components/SideMenu'
 import { LogoutButton } from '../Components/LogoutButton'
 
-export default function Top({}) {
+export default function Top({ threads }) { // threadsを受け取る
     return (
         <>
             <Head title="Top" />
             <div className="flex h-screen">
-                <SideMenu />
+            <SideMenu threads={threads} /> {/* threadsをSideMenuに渡す */}
                 <div className="flex-1 p-4 bg-gray-800 text-white">
                     <div className="flex justify-end">
                         <LogoutButton />
