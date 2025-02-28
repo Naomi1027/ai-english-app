@@ -2,8 +2,51 @@ import { Head } from '@inertiajs/react'
 import { SideMenu } from '../../Components/SideMenu'
 import { LogoutButton } from '../../Components/LogoutButton'
 import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
+import { useState, useRef } from 'react'
+import axios from 'axios'
 
-export default function Top({ threads, messages}) { // threadsを受け取る
+export default function Show({ threads, messages, threadId }) {
+    const [isRecording, setIsRecording] = useState(false);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+
+    const handleRecording = async () => {
+        if (isRecording) {
+            // 録音停止
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        } else {
+            // 録音開始
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                audioChunksRef.current.push(event.data);
+            };
+            mediaRecorderRef.current.onstop = async () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'audio.wav');
+
+                try {
+                    // 音声データを送信
+                    await axios.post(`/thread/${threadId}/message`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        },
+                    });
+                    window.location.reload();
+                } catch (error) {
+                    alert('音声データの送信に失敗しました');
+                    console.error('Error sending audio data:', error);
+                }
+
+                audioChunksRef.current = []; // チャンクをリセット
+            };
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+        }
+    };
+
     return (
         <>
             <Head title="Show" />
@@ -48,7 +91,10 @@ export default function Top({ threads, messages}) { // threadsを受け取る
                             ))}
                         </div>
                         <div className="flex justify-end pb-10">
-                            <button className="bg-green-600 p-6 rounded-full">
+                        <button
+                                className={`bg-green-600 p-6 rounded-full ${isRecording ? 'bg-red-600' : ''}`}
+                                onClick={handleRecording}
+                            >
                                 <HiMicrophone size={32} />
                             </button>
                         </div>
