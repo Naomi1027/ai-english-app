@@ -8,7 +8,7 @@ export default function Top({ threads }) { // threadsを受け取る
             <Head title="Top" />
             <div className="flex h-screen">
             <SideMenu threads={threads} /> {/* threadsをSideMenuに渡す */}
-                <div className="flex-1 p-4 bg-gray-800 text-white">
+                <div className="flex-1 p-4 bg-gray-300 text-white">
                     <div className="flex justify-end">
                         <LogoutButton />
                     </div>
