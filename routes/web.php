@@ -10,4 +10,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/top', [ThreadController::class, 'index'])->name('top');
     // 英会話画面
     Route::get('/thread/{threadId}', [ThreadController::class, 'show'])->name('thread.show');
+    // 新規スレッド作成
+    Route::get('/thread', [ThreadController::class, 'store'])->name('thread.store');
 });
