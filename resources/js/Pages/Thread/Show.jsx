@@ -7,6 +7,7 @@ import axios from 'axios'
 
 export default function Show({ threads, messages, threadId }) {
     const [isRecording, setIsRecording] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // ローディング状態を追加
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
 
@@ -27,6 +28,8 @@ export default function Show({ threads, messages, threadId }) {
                 const formData = new FormData();
                 formData.append('audio', audioBlob, 'audio.wav');
 
+                setIsLoading(true); // ローディング開始
+
                 try {
                     // 音声データを送信
                     await axios.post(`/thread/${threadId}/message`, formData, {
@@ -38,6 +41,8 @@ export default function Show({ threads, messages, threadId }) {
                 } catch (error) {
                     alert('音声データの送信に失敗しました');
                     console.error('Error sending audio data:', error);
+                } finally {
+                    setIsLoading(false); // ローディング終了
                 }
 
                 audioChunksRef.current = []; // チャンクをリセット
@@ -50,7 +55,12 @@ export default function Show({ threads, messages, threadId }) {
     return (
         <>
             <Head title="Show" />
-            <div className="flex h-screen overflow-hidden">
+            {isLoading && ( // ローディングアニメーションの表示
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="loader border-4 border-t-4 border-t-blue-500 border-gray-300 rounded-full w-16 h-16 animate-spin"></div> {/* TailwindCSSを使用したローディングアニメーション */}
+                </div>
+            )}
+            <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
                 <SideMenu threads={threads} />
                 <div className="flex-1 p-4 bg-gray-300 text-white relative">
                     <div className="flex justify-end">
