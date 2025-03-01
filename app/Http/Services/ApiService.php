@@ -62,6 +62,10 @@ class ApiService
             'messages' => $messages,
         ]);
 
+        if (!$response->successful()) {
+            throw new \Exception('Failed to call API: ' . $response->body());
+        }
+
         return $response->json();
 
     }

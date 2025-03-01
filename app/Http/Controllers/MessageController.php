@@ -48,17 +48,21 @@ class MessageController extends Controller
             // 過去のメッセージを取得
             $messages = Message::where('thread_id', $threadId)->get();
             // GPTにAPIリクエスト
-            $gptResponse = $apiService->callGptApi($messages);
-            $aiMessageText = $gptResponse['choices'][0]['message']['content'];
-            // データベースに保存する処理を追加
-            $aiMessage = Message::create([
-                'thread_id' => $threadId,
-                'message_en' => $aiMessageText,
-                'message_ja' => '',
-                'audio_file_path' => '',
-                'sender' => 2, // AI
-            ]);
-
+            try {
+                $gptResponse = $apiService->callGptApi($messages);
+                $aiMessageText = $gptResponse['choices'][0]['message']['content'];
+                // データベースに保存する処理を追加
+                $aiMessage = Message::create([
+                    'thread_id' => $threadId,
+                    'message_en' => $aiMessageText,
+                    'message_ja' => '',
+                    'audio_file_path' => '',
+                    'sender' => 2, // AI
+                ]);
+            } catch (\Exception $e) {
+                Log::error('API call failed', ['error' => $e->getMessage()]);
+                return response()->json(['message' => 'API呼び出しに失敗しました'], 500);
+            }
         return response()->json(['message' => '音声データが保存されました'], 200);
     }
     return response()->json(['message' => '音声データが保存されませんでした'], 400);
