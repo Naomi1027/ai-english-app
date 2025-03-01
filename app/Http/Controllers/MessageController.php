@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Message;
 use App\Http\Services\ApiService;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -28,13 +29,21 @@ class MessageController extends Controller
 
             // 音声データをAPIに送信
             $apiService = new ApiService();
-            $response = $apiService->callWhiperApi($path);
-            $message_en = $response['text'];
+            try {
+                $response = $apiService->callWhiperApi($path);
 
-            $message->update([
-                'message_en' => $message_en,
-            ]);
-
+                if (isset($response['text'])) {
+                    $message->update([
+                        'message_en' => $response['text'],
+                    ]);
+                } else {
+                    Log::error('API response does not contain text field', ['response' => $response]);
+                    return response()->json(['message' => 'API回答の処理に失敗しました'], 500);
+                }
+            } catch (\Exception $e) {
+                Log::error('API call failed', ['error' => $e->getMessage()]);
+                return response()->json(['message' => 'API呼び出しに失敗しました'], 500);
+            }
 
         return response()->json(['message' => '音声データが保存されました'], 200);
     }
