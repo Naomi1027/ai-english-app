@@ -33,4 +33,36 @@ class ApiService
 
         return $response->json();
     }
+
+    /**
+     * @param Collection<Message> $modelMessages
+     */
+    public function callGptApi($modelMessages)
+    {
+        $systemMessage = [
+            'role' => 'system',
+            'content' => 'You are a helpful English teacher. Please speak English.',
+        ];
+
+        $messages = $modelMessages->map(function($message) {
+            return [
+                'role' => $message->role === 1 ? 'user' : 'assistant',
+                'content' => $message->message_en,
+            ];
+        })->toArray();
+
+        $messages = array_merge([$systemMessage], $messages);
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+        ])
+        ->post('https://api.openai.com/v1/chat/completions', [
+            'model' => 'gpt-4o-mini',
+            'messages' => $messages,
+        ]);
+
+        return $response->json();
+
+    }
 }
