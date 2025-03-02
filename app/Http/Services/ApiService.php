@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Http;
 
 class ApiService
 {
+    /**
+     * @param string $audioFilePath
+     */
     public function callWhiperApi($audioFilePath)
     {
         $filePath = storage_path('app/public/' . $audioFilePath);
@@ -68,5 +71,31 @@ class ApiService
 
         return $response->json();
 
+    }
+
+    /**
+     * @param string $aiMessageText
+     */
+    public function callTtsApi($aiMessageText)
+    {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+        ])
+        ->post('https://api.openai.com/v1/audio/speech', [
+            'model' => 'tts-1',
+            'input' => $aiMessageText,
+            // alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer
+            'voice' => 'shimmer',
+            'response_format' => 'wav',
+        ]);
+
+        // 音声ファイルの保存
+        $fileName = 'speech_' . now()->format('Ymd_His') . '.wav';
+        $filePath = storage_path('app/public/ai_audio/' . $fileName);
+        file_put_contents($filePath, $response->body());
+
+        // 修正: 返すパスを相対パスに変更
+        return 'ai_audio/' . $fileName; // 保存した音声のファイルパスを相対パスで返す
     }
 }

@@ -63,6 +63,14 @@ class MessageController extends Controller
                 Log::error('API call failed', ['error' => $e->getMessage()]);
                 return response()->json(['message' => 'API呼び出しに失敗しました'], 500);
             }
+
+            // TTSにAPIリクエスト
+            $aiAudioFilePath = $apiService->callTtsApi($aiMessageText);
+            // 音声ファイルパスを上書き
+            $aiMessage->update([
+                'audio_file_path' => $aiAudioFilePath,
+            ]);
+
         return response()->json(['message' => '音声データが保存されました'], 200);
     }
     return response()->json(['message' => '音声データが保存されませんでした'], 400);
