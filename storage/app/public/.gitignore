@@ -1,2 +1,6 @@
 *
 !.gitignore
+!.ai_audio/
+!.ai_audio/.gitkeep
+!.audio/
+!.audio/.gitkeep

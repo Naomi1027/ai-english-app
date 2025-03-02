@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react'
 import { SideMenu } from '../../Components/SideMenu'
 import { LogoutButton } from '../../Components/LogoutButton'
 import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 
 export default function Show({ threads, messages, threadId }) {
@@ -10,6 +10,8 @@ export default function Show({ threads, messages, threadId }) {
     const [isLoading, setIsLoading] = useState(false); // ローディング状態を追加
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
+    const audioRefs = useRef({}); // 音声ファイルの参照を保持
+    const [playingAudio, setPlayingAudio] = useState(null);
 
     const handleRecording = async () => {
         if (isRecording) {
@@ -52,6 +54,51 @@ export default function Show({ threads, messages, threadId }) {
         }
     };
 
+    const handleAudioPlayback = (audioFilePath) => {
+        // 現在再生中の音声があれば停止
+        if (playingAudio) {
+            playingAudio.pause();
+            playingAudio.currentTime = 0;
+        }
+
+        // 同じ音声を再度クリックした場合は停止して終了
+        if (playingAudio?.src.includes(audioFilePath)) {
+            setPlayingAudio(null);
+            return;
+        }
+
+        // 新しい音声を再生
+        const audio = new Audio(`/storage/${audioFilePath}`);
+        audio.play().catch(error => {
+            console.error('音声ファイルの再生に失敗しました:', error);
+        });
+
+        // 再生終了時の処理
+        audio.onended = () => {
+            setPlayingAudio(null);
+        };
+
+        setPlayingAudio(audio);
+    };
+
+    useEffect(() => {
+        // コンポーネントのアンマウント時に音声を停止
+        return () => {
+            if (playingAudio) {
+                playingAudio.pause();
+                playingAudio.currentTime = 0;
+            }
+        };
+    }, [playingAudio]);
+
+    // 最新のメッセージが追加されたときの自動再生
+    useEffect(() => {
+        const latestMessage = messages[messages.length - 1];
+        if (latestMessage && latestMessage.audio_file_path && latestMessage.sender === 2) {
+            handleAudioPlayback(latestMessage.audio_file_path);
+        }
+    }, [messages]);
+
     return (
         <>
             <Head title="Show" />
@@ -89,7 +136,10 @@ export default function Show({ threads, messages, threadId }) {
                                             <p>{message.message_en}</p>
                                         </div>
                                         <div className="flex items-center ml-2">
-                                            <button className="bg-gray-600 p-1 rounded-full">
+                                        <button
+                                            className="bg-gray-600 p-1 rounded-full"
+                                            onClick={() => handleAudioPlayback(message.audio_file_path)} // 音声再生のハンドラを追加
+                                        >
                                                 <HiSpeakerphone size={24} />
                                             </button>
                                             <button className="bg-gray-600 p-1 rounded-full ml-1">
