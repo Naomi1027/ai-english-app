@@ -90,9 +90,18 @@ class ApiService
             'response_format' => 'wav',
         ]);
 
+        if (!$response->successful()) {
+            throw new \Exception('Failed to call API: ' . $response->body());
+        }
+
         // 音声ファイルの保存
         $fileName = 'speech_' . now()->format('Ymd_His') . '.wav';
         $filePath = storage_path('app/public/ai_audio/' . $fileName);
+
+        if (!file_exists(dirname($filePath))) {
+            mkdir(dirname($filePath), 0755, true);
+        }
+
         file_put_contents($filePath, $response->body());
 
         // 修正: 返すパスを相対パスに変更
