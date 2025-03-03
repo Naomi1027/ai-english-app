@@ -5,13 +5,16 @@ import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 
-export default function Show({ threads, messages, threadId }) {
+export default function Show({ threads, messages: initialMessages, threadId }) {
+    const [messages, setMessages] = useState(initialMessages); // messagesの状態を定義
     const [isRecording, setIsRecording] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // ローディング状態を追加
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
     const [playingAudio, setPlayingAudio] = useState(null);
+    const [shouldPlayAudio, setShouldPlayAudio] = useState(true); // 音声再生フラグを追加
+
 
     const handleRecording = async () => {
         if (isRecording) {
@@ -81,6 +84,33 @@ export default function Show({ threads, messages, threadId }) {
         setPlayingAudio(audio);
     };
 
+    const handleTranslate = async (messageId) => {
+        const message = messages.find(msg => msg.id === messageId);
+
+        if (!message.message_ja) {
+            // message_jaが無い場合のみリクエストを送信
+            try {
+                const response = await axios.post(`/thread/${threadId}/message/${messageId}/translate`);
+                // message_jaに翻訳結果を保持
+                const updatedMessages = messages.map(msg =>
+                    msg.id === messageId ? { ...msg, message_ja: response.data.message, showJapanese: true } : msg // 初回クリックで日本語を表示
+                );
+                // ステートを更新
+                setMessages(updatedMessages);
+                setShouldPlayAudio(false); // 音声再生を防ぐフラグを設定
+            } catch (error) {
+                console.error('翻訳に失敗しました:', error);
+                alert('翻訳に失敗しました');
+            }
+        } else {
+            // message_jaがある場合は表示を切り替え
+            const updatedMessages = messages.map(msg =>
+                msg.id === messageId ? { ...msg, showJapanese: !msg.showJapanese } : msg
+            );
+            setMessages(updatedMessages);
+        }
+    };
+
     useEffect(() => {
         // コンポーネントのアンマウント時に音声を停止
         return () => {
@@ -96,8 +126,13 @@ export default function Show({ threads, messages, threadId }) {
         const latestMessage = messages[messages.length - 1];
         if (latestMessage && latestMessage.audio_file_path && latestMessage.sender === 2) {
             handleAudioPlayback(latestMessage.audio_file_path);
+            // スクロールを一番下に設定
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer) {
+                messageContainer.scrollTop = messageContainer.scrollHeight; // スクロール位置を一番下に設定
+            }
         }
-    }, [messages]);
+    }, [messages]); // messagesが更新されるたびに実行
 
     return (
         <>
@@ -114,7 +149,7 @@ export default function Show({ threads, messages, threadId }) {
                         <LogoutButton />
                     </div>
                     <div className="flex flex-col h-full justify-between pt-8">
-                        <div className="flex flex-col space-y-4 overflow-y-auto">
+                    <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
                         {messages.map((message, index) => (
                                 message.sender === 1 ? (
                                     // ユーザのメッセージ
@@ -133,7 +168,7 @@ export default function Show({ threads, messages, threadId }) {
                                             AI
                                         </div>
                                         <div className="bg-gray-700 p-2 rounded-lg max-w-xs">
-                                            <p>{message.message_en}</p>
+                                            <p>{message.showJapanese ? message.message_ja : message.message_en}</p> {/* 表示切り替え */}
                                         </div>
                                         <div className="flex items-center ml-2">
                                         <button
@@ -142,8 +177,11 @@ export default function Show({ threads, messages, threadId }) {
                                         >
                                                 <HiSpeakerphone size={24} />
                                             </button>
-                                            <button className="bg-gray-600 p-1 rounded-full ml-1">
-                                                Aあ
+                                            <button
+                                                className="bg-gray-600 p-1 rounded-full ml-1"
+                                                onClick={() => handleTranslate(message.id)}
+                                            >
+                                                A訳
                                             </button>
                                         </div>
                                     </div>

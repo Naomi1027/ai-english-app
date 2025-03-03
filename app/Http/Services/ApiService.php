@@ -44,7 +44,7 @@ class ApiService
     {
         $systemMessage = [
             'role' => 'system',
-            'content' => 'You are a helpful English teacher. Please speak English.',
+            'content' => 'You are a friendly person having a casual conversation in English with the user. Respond naturally and keep the conversation engaging. Do not provide lists, extensive advice, or instructional content unless the user specifically asks for it.',
         ];
 
         $messages = $modelMessages->map(function($message) {
@@ -106,5 +106,41 @@ class ApiService
 
         // 修正: 返すパスを相対パスに変更
         return 'ai_audio/' . $fileName; // 保存した音声のファイルパスを相対パスで返す
+    }
+
+    /**
+     * 英語の文章を日本語に翻訳するためのAPIリクエスト
+     *
+     * @param string $englishText
+     * @return array
+     */
+    public function callTranslateApi($englishText)
+    {
+        $systemMessage = [
+            'role' => 'system',
+            'content' => 'Please translate the English text provided into Japanese.',
+        ];
+
+        $userMessage = [
+            'role' => 'user',
+            'content' => $englishText,
+        ];
+
+        $messages = [$systemMessage, $userMessage];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+        ])
+        ->post('https://api.openai.com/v1/chat/completions', [
+            'model' => 'gpt-4o-mini',
+            'messages' => $messages,
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('Failed to call API: ' . $response->body());
+        }
+
+        return $response->json();
     }
 }
