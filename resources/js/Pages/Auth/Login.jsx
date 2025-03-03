@@ -25,6 +25,15 @@ export default function Login({ status, canResetPassword }) {
         <GuestLayout>
             <Head title="Log in" />
 
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-800">
+                    AI英会話へようこそ
+                </h1>
+                <p className="mt-2 text-gray-600">
+                    ログインして英会話の練習を始めましょう
+                </p>
+            </div>
+
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
                     {status}

@@ -12,7 +12,7 @@ export function SideMenu({ threads }) { // threadsを受け取る
                 <li>
                 <a href={ route('thread.store') } className="flex items-center p-2 text-base font-normal text-white hover:bg-orange-400">
                         <HiPlus className="w-6 h-6" />
-                        <span className="ml-3">新規スレッド作成</span>
+                        <span className="ml-3">新規英会話作成</span>
                     </a>
                 </li>
                 {threads.map((thread, index) => ( // threadsをループして表示
