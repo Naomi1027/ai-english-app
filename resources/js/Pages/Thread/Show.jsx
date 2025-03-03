@@ -9,7 +9,6 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     const [messages, setMessages] = useState(initialMessages); // messagesの状態を定義
     const [isRecording, setIsRecording] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // ローディング状態を追加
-    const [languageStates, setLanguageStates] = useState({}); // メッセージごとの言語状態を管理
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
@@ -127,7 +126,6 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
         const latestMessage = messages[messages.length - 1];
         if (latestMessage && latestMessage.audio_file_path && latestMessage.sender === 2) {
             handleAudioPlayback(latestMessage.audio_file_path);
-
             // スクロールを一番下に設定
             const messageContainer = document.getElementById('message-container');
             if (messageContainer) {
@@ -175,20 +173,15 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                                         <div className="flex items-center ml-2">
                                             <button
                                                 className="bg-gray-600 p-1 rounded-full"
-                                                onClick={() => handleAudioPlayback(message.audio_file_path)}
+                                                onClick={() => handleAudioPlayback(message.audio_file_path)} // 音声再生のハンドラを追加
                                             >
                                                 <HiSpeakerphone size={24} />
                                             </button>
                                             <button
                                                 className="bg-gray-600 p-1 rounded-full ml-1"
-                                                onClick={() => {
-                                                    setLanguageStates(prev => ({
-                                                        ...prev,
-                                                        [index]: !prev[index]
-                                                    }));
-                                                }}
+                                                onClick={() => handleTranslate(message.id)}
                                             >
-                                                {languageStates[index] ? 'あA' : 'Aあ'}
+                                                A訳
                                             </button>
                                         </div>
                                     </div>
