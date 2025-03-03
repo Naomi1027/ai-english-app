@@ -105,16 +105,10 @@ class MessageController extends Controller
         ]);
 
         return response()->json(['message' => $aiMessageJa], 200);
+
         } catch (\Exception $e) {
             Log::error('API call failed', ['error' => $e->getMessage()]);
             return response()->json(['message' => '翻訳に失敗しました'], 500);
         }
-
-        $aiMessageJa = $gptResponse['choices'][0]['message']['content'];
-        $message->update([
-            'message_ja' => $aiMessageJa
-        ]);
-
-        return response()->json(['message' => $aiMessageJa], 200);
     }
 }
