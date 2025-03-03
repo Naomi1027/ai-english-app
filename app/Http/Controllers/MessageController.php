@@ -79,4 +79,25 @@ class MessageController extends Controller
     }
     return response()->json(['message' => '音声データが保存されませんでした'], 400);
     }
+
+    public function translate(Request $request, int $threadId, int $messageId)
+    {
+        // メッセージを取得
+        $message = Message::find($messageId);
+
+        if (!$message) {
+            return response()->json(['message' => 'メッセージが見つかりませんでした'], 404);
+        }
+
+        // GPTにAPIリクエスト
+        $apiService = new ApiService();
+        $gptResponse = $apiService->callTranslateApi($message->message_en);
+
+        $aiMessageJa = $gptResponse['choices'][0]['message']['content'];
+        $message->update([
+            'message_ja' => $aiMessageJa
+        ]);
+
+        return response()->json(['message' => $aiMessageJa], 200);
+    }
 }
