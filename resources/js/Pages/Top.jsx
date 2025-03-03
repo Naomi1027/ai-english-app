@@ -44,7 +44,7 @@ export default function Top({ threads }) { // threadsを受け取る
                             <h2 className="text-2xl font-semibold mt-8 mb-4">使い方</h2>
                             <ol className="list-decimal list-inside space-y-3 pl-4">
                                 <li>
-                                    左サイドメニューの<span className="font-semibold text-blue-500">新規英会話作成</span>ボタンをクリックします
+                                    左サイドメニューの<span className="font-semibold text-blue-500">新規英会話作成</span>ボタンをクリックして、ログインして下さい。
                                 </li>
                                 <li>
                                     <span className="font-semibold text-blue-500">マイク</span>ボタンをクリックして、AIとの英会話を始めましょう！
