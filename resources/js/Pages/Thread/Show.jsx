@@ -5,7 +5,8 @@ import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 
-export default function Show({ threads, messages, threadId }) {
+export default function Show({ threads, messages: initialMessages, threadId }) {
+    const [messages, setMessages] = useState(initialMessages); // messagesの状態を定義
     const [isRecording, setIsRecording] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // ローディング状態を追加
     const [languageStates, setLanguageStates] = useState({}); // メッセージごとの言語状態を管理
@@ -13,6 +14,8 @@ export default function Show({ threads, messages, threadId }) {
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
     const [playingAudio, setPlayingAudio] = useState(null);
+    const [shouldPlayAudio, setShouldPlayAudio] = useState(true); // 音声再生フラグを追加
+
 
     const handleRecording = async () => {
         if (isRecording) {
@@ -82,6 +85,33 @@ export default function Show({ threads, messages, threadId }) {
         setPlayingAudio(audio);
     };
 
+    const handleTranslate = async (messageId) => {
+        const message = messages.find(msg => msg.id === messageId);
+
+        if (!message.message_ja) {
+            // message_jaが無い場合のみリクエストを送信
+            try {
+                const response = await axios.post(`/thread/${threadId}/message/${messageId}/translate`);
+                // message_jaに翻訳結果を保持
+                const updatedMessages = messages.map(msg =>
+                    msg.id === messageId ? { ...msg, message_ja: response.data.message, showJapanese: true } : msg // 初回クリックで日本語を表示
+                );
+                // ステートを更新
+                setMessages(updatedMessages);
+                setShouldPlayAudio(false); // 音声再生を防ぐフラグを設定
+            } catch (error) {
+                console.error('翻訳に失敗しました:', error);
+                alert('翻訳に失敗しました');
+            }
+        } else {
+            // message_jaがある場合は表示を切り替え
+            const updatedMessages = messages.map(msg =>
+                msg.id === messageId ? { ...msg, showJapanese: !msg.showJapanese } : msg
+            );
+            setMessages(updatedMessages);
+        }
+    };
+
     useEffect(() => {
         // コンポーネントのアンマウント時に音声を停止
         return () => {
@@ -104,7 +134,7 @@ export default function Show({ threads, messages, threadId }) {
                 messageContainer.scrollTop = messageContainer.scrollHeight; // スクロール位置を一番下に設定
             }
         }
-    }, [messages]);
+    }, [messages]); // messagesが更新されるたびに実行
 
     return (
         <>
@@ -140,7 +170,7 @@ export default function Show({ threads, messages, threadId }) {
                                             AI
                                         </div>
                                         <div className="bg-gray-700 p-2 rounded-lg max-w-xs">
-                                            <p>{languageStates[index] ? message.message_ja : message.message_en}</p>
+                                            <p>{message.showJapanese ? message.message_ja : message.message_en}</p> {/* 表示切り替え */}
                                         </div>
                                         <div className="flex items-center ml-2">
                                             <button

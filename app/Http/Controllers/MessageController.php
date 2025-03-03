@@ -79,4 +79,36 @@ class MessageController extends Controller
     }
     return response()->json(['message' => '音声データが保存されませんでした'], 400);
     }
+
+    public function translate(Request $request, int $threadId, int $messageId)
+    {
+        // メッセージを取得
+        $message = Message::find($messageId);
+
+        if (!$message) {
+            return response()->json(['message' => 'メッセージが見つかりませんでした'], 404);
+        }
+
+        // GPTにAPIリクエスト
+        $apiService = new ApiService();
+        try {
+        $gptResponse = $apiService->callTranslateApi($message->message_en);
+
+        if (!isset($gptResponse['choices'][0]['message']['content'])) {
+            Log::error('API response does not contain content field', ['response' => $gptResponse]);
+            return response()->json(['message' => '翻訳の処理に失敗しました'], 500);
+        }
+
+        $aiMessageJa = $gptResponse['choices'][0]['message']['content'];
+        $message->update([
+            'message_ja' => $aiMessageJa
+        ]);
+
+        return response()->json(['message' => $aiMessageJa], 200);
+
+        } catch (\Exception $e) {
+            Log::error('API call failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => '翻訳に失敗しました'], 500);
+        }
+    }
 }
