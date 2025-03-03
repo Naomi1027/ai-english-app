@@ -12,9 +12,7 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
-    const [playingAudio, setPlayingAudio] = useState(null);
     const [shouldPlayAudio, setShouldPlayAudio] = useState(true); // 音声再生フラグを追加
-
 
     const handleRecording = async () => {
         if (isRecording) {
@@ -58,30 +56,21 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     };
 
     const handleAudioPlayback = (audioFilePath) => {
-        // 現在再生中の音声があれば停止
-        if (playingAudio) {
-            playingAudio.pause();
-            playingAudio.currentTime = 0;
+        if (audioRefs.current[audioFilePath]) {
+            // 既に再生中の場合は停止
+            audioRefs.current[audioFilePath].pause();
+            delete audioRefs.current[audioFilePath];
+        } else {
+            // 新たに再生
+            const audio = new Audio(`/storage/${audioFilePath}`);
+            audioRefs.current[audioFilePath] = audio;
+            audio.play().catch(error => {
+                console.error('音声ファイルの再生に失敗しました:', error);
+            });
+            audio.onended = () => {
+                delete audioRefs.current[audioFilePath]; // 再生終了時に参照を削除
+            };
         }
-
-        // 同じ音声を再度クリックした場合は停止して終了
-        if (playingAudio?.src.includes(audioFilePath)) {
-            setPlayingAudio(null);
-            return;
-        }
-
-        // 新しい音声を再生
-        const audio = new Audio(`/storage/${audioFilePath}`);
-        audio.play().catch(error => {
-            console.error('音声ファイルの再生に失敗しました:', error);
-        });
-
-        // 再生終了時の処理
-        audio.onended = () => {
-            setPlayingAudio(null);
-        };
-
-        setPlayingAudio(audio);
     };
 
     const handleTranslate = async (messageId) => {
@@ -112,27 +101,21 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     };
 
     useEffect(() => {
-        // コンポーネントのアンマウント時に音声を停止
-        return () => {
-            if (playingAudio) {
-                playingAudio.pause();
-                playingAudio.currentTime = 0;
-            }
-        };
-    }, [playingAudio]);
-
-    // 最新のメッセージが追加されたときの自動再生
-    useEffect(() => {
+        // 最新のメッセージの音声ファイルを再生
         const latestMessage = messages[messages.length - 1];
-        if (latestMessage && latestMessage.audio_file_path && latestMessage.sender === 2) {
-            handleAudioPlayback(latestMessage.audio_file_path);
+        if (latestMessage && latestMessage.audio_file_path) {
+            const audio = new Audio(`/storage/${latestMessage.audio_file_path}`);
+            audio.play().catch(error => {
+                console.error('音声ファイルの再生に失敗しました:', error);
+            });
+
             // スクロールを一番下に設定
             const messageContainer = document.getElementById('message-container');
             if (messageContainer) {
                 messageContainer.scrollTop = messageContainer.scrollHeight; // スクロール位置を一番下に設定
             }
         }
-    }, [messages]); // messagesが更新されるたびに実行
+    }, []);
 
     return (
         <>
@@ -144,20 +127,20 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
             )}
             <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
                 <SideMenu threads={threads} />
-                <div className="flex-1 p-4 bg-gray-300 text-white relative">
+                <div className="flex-1 p-4 bg-gray-800 text-white relative">
                     <div className="flex justify-end">
                         <LogoutButton />
                     </div>
-                    <div className="flex flex-col h-full justify-between pt-8">
-                    <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
-                        {messages.map((message, index) => (
+                    <div className="flex flex-col h-full justify-between">
+                        <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
+                            {messages.map((message, index) => (
                                 message.sender === 1 ? (
                                     // ユーザのメッセージ
                                     <div key={index} className="flex justify-end items-center">
                                         <div className="bg-blue-600 p-2 rounded-lg max-w-xs">
                                             <p>{message.message_en}</p>
                                         </div>
-                                        <div className="ml-2 bg-blue-600 p-2 rounded-full">
+                                        <div className="ml-2 bg-gray-600 p-2 rounded-full">
                                             You
                                         </div>
                                     </div>
@@ -189,8 +172,8 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                             ))}
                         </div>
                         <div className="flex justify-end pb-10">
-                        <button
-                                className={`bg-green-600 p-6 rounded-full ${isRecording ? 'bg-red-600' : ''}`}
+                            <button
+                                className={`bg-gray-600 p-6 rounded-full ${isRecording ? 'bg-red-600' : ''}`}
                                 onClick={handleRecording}
                             >
                                 <HiMicrophone size={32} />
