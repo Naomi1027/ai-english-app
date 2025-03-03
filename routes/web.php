@@ -8,7 +8,7 @@ use App\Http\Controllers\MessageController;
 require __DIR__.'/auth.php';
 
 Route::get('/', function () {
-    return view('login');
+    return view('top');
 });
 
 
