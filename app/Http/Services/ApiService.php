@@ -107,4 +107,36 @@ class ApiService
         // 修正: 返すパスを相対パスに変更
         return 'ai_audio/' . $fileName; // 保存した音声のファイルパスを相対パスで返す
     }
+
+    /**
+     * 英語の文章を日本語に翻訳するためのAPIリクエスト
+     *
+     * @param string $englishText
+     * @return array
+     */
+    public function callTranslateApi($englishText)
+    {
+        $systemMessage = [
+            'role' => 'system',
+            'content' => 'Please translate the English text provided into Japanese.',
+        ];
+
+        $userMessage = [
+            'role' => 'user',
+            'content' => $englishText,
+        ];
+
+        $messages = [$systemMessage, $userMessage];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+        ])
+        ->post('https://api.openai.com/v1/chat/completions', [
+            'model' => 'gpt-4o-mini',
+            'messages' => $messages,
+        ]);
+
+        return $response->json();
+    }
 }
