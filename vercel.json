@@ -26,7 +26,7 @@
         "APP_NAME": "Laravel Vercel",
         "APP_ENV": "production",
         "APP_DEBUG": "false",
-        "APP_URL": "ai-english-app27.vercel.app",
+        "APP_URL": "https://ai-english-app27.vercel.app",
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
         "APP_PACKAGES_CACHE": "/tmp/packages.php",
