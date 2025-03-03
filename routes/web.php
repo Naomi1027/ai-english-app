@@ -7,6 +7,10 @@ use App\Http\Controllers\MessageController;
 
 require __DIR__.'/auth.php';
 
+Route::get('/', function () {
+    return view('login');
+});
+
 Route::middleware('auth')->group(function () {
     // トップ画面
     Route::get('/top', [ThreadController::class, 'index'])->name('top');
