@@ -12,6 +12,7 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
     const [shouldPlayAudio, setShouldPlayAudio] = useState(true); // 音声再生フラグを追加
+    const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
     const handleRecording = async () => {
         if (isRecording) {
@@ -125,8 +126,28 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                 </div>
             )}
             <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
-                <SideMenu threads={threads} />
+                <SideMenu
+                    threads={threads}
+                    isOpen={isSideMenuOpen}
+                    onClose={() => setIsSideMenuOpen(false)}
+                />
+
+                {/* オーバーレイ */}
+                {isSideMenuOpen && (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+                        onClick={() => setIsSideMenuOpen(false)}
+                    ></div>
+                )}
+
                 <div className="flex-1 p-4 bg-gray-800 text-white relative">
+                    {/* ハンバーガーメニューボタン */}
+                    <button
+                        className="md:hidden absolute top-4 left-4 z-10 bg-gray-700 p-2 rounded-lg"
+                        onClick={() => setIsSideMenuOpen(true)}
+                    >
+                        ☰
+                    </button>
                     <div className="flex flex-col h-full justify-between">
                         <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
                             {messages.map((message, index) => (
@@ -136,7 +157,7 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                                         <div className="bg-blue-600 p-2 rounded-lg max-w-xs">
                                             <p>{message.message_en}</p>
                                         </div>
-                                        <div className="ml-2 bg-gray-600 p-2 rounded-full">
+                                        <div className="ml-2 bg-blue-600 p-2 rounded-full">
                                             You
                                         </div>
                                     </div>
