@@ -12,7 +12,6 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     const audioChunksRef = useRef([]);
     const audioRefs = useRef({}); // 音声ファイルの参照を保持
     const [shouldPlayAudio, setShouldPlayAudio] = useState(true); // 音声再生フラグを追加
-    const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
     const handleRecording = async () => {
         if (isRecording) {
