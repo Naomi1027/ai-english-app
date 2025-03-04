@@ -11,16 +11,13 @@ class ApiService
      */
     public function callWhiperApi($audioFilePath)
     {
-        $filePath = storage_path('app/public/' . $audioFilePath);
-        if (!file_exists($filePath)) {
-            throw new \Exception('Audio file not found: ' . $audioFilePath);
-        }
-
         $response = Http::attach(
-                'file',
-                file_get_contents($filePath),
-                'audio.wav'
-            )
+            'file',
+            file_get_contents(
+                storage_path('app/public/' . $audioFilePath)
+            ),
+            'audio.wav'
+        )
             ->withHeaders([
                 'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
                 // 'Content-Type' => 'multipart/form-data',
@@ -97,14 +94,8 @@ class ApiService
         // 音声ファイルの保存
         $fileName = 'speech_' . now()->format('Ymd_His') . '.wav';
         $filePath = storage_path('app/public/ai_audio/' . $fileName);
-
-        if (!file_exists(dirname($filePath))) {
-            mkdir(dirname($filePath), 0755, true);
-        }
-
         file_put_contents($filePath, $response->body());
 
-        // 修正: 返すパスを相対パスに変更
         return 'ai_audio/' . $fileName; // 保存した音声のファイルパスを相対パスで返す
     }
 
