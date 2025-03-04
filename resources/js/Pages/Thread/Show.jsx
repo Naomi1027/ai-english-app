@@ -1,6 +1,5 @@
 import { Head } from '@inertiajs/react'
 import { SideMenu } from '../../Components/SideMenu'
-import { LogoutButton } from '../../Components/LogoutButton'
 import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
@@ -128,9 +127,6 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
             <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
                 <SideMenu threads={threads} />
                 <div className="flex-1 p-4 bg-gray-800 text-white relative">
-                    <div className="flex justify-end">
-                        <LogoutButton />
-                    </div>
                     <div className="flex flex-col h-full justify-between">
                         <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
                             {messages.map((message, index) => (
