@@ -126,28 +126,8 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                 </div>
             )}
             <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
-                <SideMenu
-                    threads={threads}
-                    isOpen={isSideMenuOpen}
-                    onClose={() => setIsSideMenuOpen(false)}
-                />
-
-                {/* オーバーレイ */}
-                {isSideMenuOpen && (
-                    <div
-                        className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-                        onClick={() => setIsSideMenuOpen(false)}
-                    ></div>
-                )}
-
+                <SideMenu threads={threads} />
                 <div className="flex-1 p-4 bg-gray-800 text-white relative">
-                    {/* ハンバーガーメニューボタン */}
-                    <button
-                        className="md:hidden absolute top-4 left-4 z-10 bg-gray-700 p-2 rounded-lg"
-                        onClick={() => setIsSideMenuOpen(true)}
-                    >
-                        ☰
-                    </button>
                     <div className="flex flex-col h-full justify-between">
                         <div id="message-container" className="flex flex-col space-y-4 overflow-y-auto"> {/* IDを追加 */}
                             {messages.map((message, index) => (

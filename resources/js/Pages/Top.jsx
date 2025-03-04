@@ -1,37 +1,13 @@
 import { Head, Link } from '@inertiajs/react'
 import { SideMenu } from '../Components/SideMenu'
-import { useState } from 'react'
 
-export default function Top({ threads }) {
-    const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-
+export default function Top({ threads }) { // threadsを受け取る
     return (
         <>
             <Head title="Top" />
-            <div className="flex h-screen overflow-hidden">
-                <SideMenu
-                    threads={threads}
-                    isOpen={isSideMenuOpen}
-                    onClose={() => setIsSideMenuOpen(false)}
-                />
-
-                {/* オーバーレイ */}
-                {isSideMenuOpen && (
-                    <div
-                        className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-                        onClick={() => setIsSideMenuOpen(false)}
-                    ></div>
-                )}
-
-                <div className="flex-1 p-4 bg-gray-300 text-white relative">
-                    {/* ハンバーガーメニューボタン */}
-                    <button
-                        className="md:hidden absolute top-4 left-4 z-10 bg-gray-400 p-2 rounded-lg"
-                        onClick={() => setIsSideMenuOpen(true)}
-                    >
-                        ☰
-                    </button>
-
+            <div className="flex h-screen">
+            <SideMenu threads={threads} /> {/* threadsをSideMenuに渡す */}
+                <div className="flex-1 p-4 bg-gray-300 text-white">
                     <div className="max-w-3xl mx-auto mt-16 text-gray-800">
                         <h1 className="text-4xl font-bold mb-8 text-center">AI英会話アシスタント</h1>
 
