@@ -66,21 +66,15 @@ OPENAI_API_KEY=your_api_key
 
 ## デプロイ
 
-本番環境へのデプロイ手順：
-
-1. 本番環境用の環境変数の設定
-2. データベースのマイグレーション
-3. アセットのビルド
-```bash
-npm run build
-```
+- Laravel Cloud
+  - postgres
 
 ## 技術スタック
 
 - フロントエンド
-  - Vue.js
+  - inertia.js
   - TailwindCSS
-  - Alpine.js
+  - Flowbite React
 
 - バックエンド
   - Laravel
