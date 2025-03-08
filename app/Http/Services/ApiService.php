@@ -3,6 +3,7 @@
 namespace App\Http\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class ApiService
 {
@@ -96,16 +97,14 @@ class ApiService
 
         // 音声ファイルの保存
         $fileName = 'speech_' . now()->format('Ymd_His') . '.wav';
-        $filePath = storage_path('app/public/ai_audio/' . $fileName);
+        // S3に保存するためのパスを指定
+        $filePath = 'ai_audio/' . $fileName;
 
-        if (!file_exists(dirname($filePath))) {
-            mkdir(dirname($filePath), 0755, true);
-        }
-
-        file_put_contents($filePath, $response->body());
+        // S3にファイルを保存
+        Storage::disk('s3')->put($filePath, $response->body());
 
         // 修正: 返すパスを相対パスに変更
-        return 'ai_audio/' . $fileName; // 保存した音声のファイルパスを相対パスで返す
+        return $filePath; // 保存した音声のファイルパスを返す
     }
 
     /**
