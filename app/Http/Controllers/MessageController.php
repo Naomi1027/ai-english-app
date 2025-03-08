@@ -16,14 +16,18 @@ class MessageController extends Controller
             $audio = $request->file('audio');
             // ファイル名を日時に指定して保存
             $timestamp = now()->format('YmdHis');
-            $path = $audio->storeAs('audio', "audio_{$timestamp}.wav", 'public'); // 音声データを保存
+            // S3に保存するためのパスを指定
+            $path = "audio/audio_{$timestamp}.wav"; // S3のパス
+
+            // S3にファイルを保存
+            $audio->storeAs('audio', "audio_{$timestamp}.wav", 's3'); // 音声データをS3に保存
 
             // データベースに保存する処理
             $message = Message::create([
                 'thread_id' => $threadId,
                 'message_en' => 'dummy',
                 'message_ja' => '',
-                'audio_file_path' => $path,
+                'audio_file_path' => $path, // S3のパスを保存
                 'sender' => 1, // ユーザー
             ]);
 
