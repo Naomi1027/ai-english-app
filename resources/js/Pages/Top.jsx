@@ -1,6 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
 import { SideMenu } from '../Components/SideMenu'
-import { LogoutButton } from '../Components/LogoutButton'
 
 export default function Top({ threads }) { // threadsを受け取る
     return (
@@ -9,9 +8,6 @@ export default function Top({ threads }) { // threadsを受け取る
             <div className="flex h-screen">
             <SideMenu threads={threads} /> {/* threadsをSideMenuに渡す */}
                 <div className="flex-1 p-4 bg-gray-300 text-white">
-                    <div className="flex justify-end">
-                        <LogoutButton />
-                    </div>
                     <div className="max-w-3xl mx-auto mt-16 text-gray-800">
                         <h1 className="text-4xl font-bold mb-8 text-center">AI英会話アシスタント</h1>
 
@@ -44,7 +40,7 @@ export default function Top({ threads }) { // threadsを受け取る
                             <h2 className="text-2xl font-semibold mt-8 mb-4">使い方</h2>
                             <ol className="list-decimal list-inside space-y-3 pl-4">
                                 <li>
-                                    左サイドメニューの<span className="font-semibold text-blue-500">新規英会話作成</span>ボタンをクリックして、ログインして下さい。
+                                    左サイドメニューの<span className="font-semibold text-blue-500">新規英会話作成</span>ボタンをクリックします
                                 </li>
                                 <li>
                                     <span className="font-semibold text-blue-500">マイク</span>ボタンをクリックして、AIとの英会話を始めましょう！
