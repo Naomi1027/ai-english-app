@@ -1,55 +1,82 @@
-import { Head, Link } from '@inertiajs/react'
-import { SideMenu } from '../Components/SideMenu'
+<p align="center">
+<img src="path/to/your/app-logo.png" width="400" alt="AI英会話アプリロゴ">
+</p>
 
-export default function Top({ threads }) { // threadsを受け取る
-    return (
-        <>
-            <Head title="Top" />
-            <div className="flex h-screen">
-            <SideMenu threads={threads} /> {/* threadsをSideMenuに渡す */}
-                <div className="flex-1 p-4 bg-gray-300 text-white">
-                    <div className="max-w-3xl mx-auto mt-16 text-gray-800">
-                        <h1 className="text-4xl font-bold mb-8 text-center">AI英会話アシスタント</h1>
+# AI英会話アプリ
 
-                        <div className="bg-white rounded-lg p-8 shadow-lg">
-                            <p className="text-xl mb-6">
-                                AIと英会話の練習ができるプラットフォームへようこそ！
-                                24時間365日、いつでもあなたのペースで英会話の練習ができます。
-                            </p>
+AIを活用したオンライン英会話学習プラットフォームです。ユーザーは時間や場所を問わず、AIと英会話の練習ができます。
 
-                            <h2 className="text-2xl font-semibold mb-4">主な特徴</h2>
-                            <ul className="space-y-4">
-                                <li className="flex items-start">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    リアルタイムでAIと英会話練習
-                                </li>
-                                <li className="flex items-start">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    文法やボキャブラリーの即時フィードバック
-                                </li>
-                                <li className="flex items-start">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    様々なシチュエーションでの会話練習
-                                </li>
-                                <li className="flex items-start">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    会話履歴の保存と復習機能
-                                </li>
-                            </ul>
+## 主な機能
 
-                            <h2 className="text-2xl font-semibold mt-8 mb-4">使い方</h2>
-                            <ol className="list-decimal list-inside space-y-3 pl-4">
-                                <li>
-                                    左サイドメニューの<span className="font-semibold text-blue-500">新規英会話作成</span>ボタンをクリックします
-                                </li>
-                                <li>
-                                    <span className="font-semibold text-blue-500">マイク</span>ボタンをクリックして、AIとの英会話を始めましょう！
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
+- 🤖 AIとのリアルタイム会話
+- 📝 会話履歴の保存と振り返り
+- 🎯 レベル別学習コース
+- 📊 学習進捗の可視化
+- 🔍 発音・文法チェック機能
+
+## 開発環境のセットアップ
+
+### 必要要件
+
+- PHP 8.1以上
+- Composer
+- Node.js 16以上
+- MySQL 8.0以上
+- Laravel 10.x
+
+### インストール手順
+
+1. リポジトリのクローン
+```bash
+git clone https://github.com/yourusername/ai-english-conversation.git
+```
+
+2. 依存パッケージのインストール
+```bash
+composer install
+npm install
+```
+
+3. 環境設定
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. マイグレーションの実行
+```bash
+php artisan migrate
+```
+
+5. 開発サーバーの起動
+```bash
+php artisan serve
+npm run dev
+```
+
+これで http://localhost にアクセスできます。
+
+## API設定
+
+OpenAI APIを使用するために、.envファイルに以下の設定を追加してください：
+
+```env
+OPENAI_API_KEY=your_api_key
+```
+
+## デプロイ
+
+- Laravel Cloud
+  - postgres
+
+## 技術スタック
+
+- フロントエンド
+  - inertia.js
+  - TailwindCSS
+  - Flowbite React
+
+- バックエンド
+  - Laravel
+  - MySQL
+  - OpenAI API
