@@ -84,34 +84,41 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
             // 既に再生中の場合は停止
             audioRefs.current[audioFilePath].pause();
             delete audioRefs.current[audioFilePath];
+            console.log('Audio playback stopped');
         } else {
             try {
-                const bucketName = 'fls-9e57ee01-7e4d-4e84-83fc-2aa82169155b';
-                const r2Url = `https://${bucketName}.r2.dev/${audioFilePath}`;
-                console.log('Accessing audio file at:', r2Url); // デバッグ用
+                console.log('Original audio path:', audioFilePath);
+
+                // ファイル名だけを抽出 (フルパスまたはファイル名のみどちらでも対応)
+                const fileName = audioFilePath.includes('/')
+                    ? audioFilePath.split('/').pop()
+                    : audioFilePath;
+
+                console.log('Extracted file name:', fileName);
+
+                // APIエンドポイントを使用 (絶対パスで指定)
+                const audioApiUrl = `${window.location.origin}/api/audio/${fileName}`;
+                console.log('Accessing audio via API:', audioApiUrl);
 
                 // 音声ファイルが存在するか確認
-                const response = await fetch(r2Url, {
-                    headers: {
-                        'Accept': 'audio/wav,audio/*;q=0.9,*/*;q=0.8'
-                    },
-                    mode: 'cors', // CORSモードを明示的に指定
-                    credentials: 'omit' // クレデンシャルは送信しない
-                });
+                const response = await fetch(audioApiUrl);
 
                 if (!response.ok) {
                     console.error('Response status:', response.status);
-                    console.error('Response headers:', Object.fromEntries(response.headers));
+                    if (response.headers) {
+                        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+                    }
                     throw new Error(`音声ファイルの取得に失敗しました: ${response.status}`);
                 }
 
                 // Content-Typeを確認
                 const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType); // デバッグ用
+                console.log('Content-Type:', contentType);
 
                 // Blobとして読み込む
                 const blob = await response.blob();
                 const audioUrl = URL.createObjectURL(blob);
+                console.log('Created object URL for audio');
 
                 // 新たに再生
                 const audio = new Audio();
