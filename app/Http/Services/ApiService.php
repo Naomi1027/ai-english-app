@@ -12,28 +12,29 @@ class ApiService
      */
     public function callWhiperApi($audioFilePath)
     {
-        $filePath = storage_path('app/public/' . $audioFilePath);
-        if (!file_exists($filePath)) {
-            throw new \Exception('Audio file not found: ' . $audioFilePath);
+        // S3から音声ファイルを読み込む
+        if (!Storage::disk('s3')->exists($audioFilePath)) {
+            throw new \Exception('Audio file not found in S3: ' . $audioFilePath);
         }
+
+        $audioContent = Storage::disk('s3')->get($audioFilePath);
 
         $response = Http::attach(
                 'file',
-                file_get_contents($filePath),
+                $audioContent,
                 'audio.wav'
             )
             ->withHeaders([
                 'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
-                // 'Content-Type' => 'multipart/form-data',
             ])
             ->post('https://api.openai.com/v1/audio/transcriptions', [
                 'model' => 'whisper-1',
                 'language' => 'en',
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('Failed to call API: ' . $response->body());
-            }
+        if (!$response->successful()) {
+            throw new \Exception('Failed to call API: ' . $response->body());
+        }
 
         return $response->json();
     }
@@ -86,7 +87,6 @@ class ApiService
         ->post('https://api.openai.com/v1/audio/speech', [
             'model' => 'tts-1',
             'input' => $aiMessageText,
-            // alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer
             'voice' => 'shimmer',
             'response_format' => 'wav',
         ]);
@@ -95,16 +95,11 @@ class ApiService
             throw new \Exception('Failed to call API: ' . $response->body());
         }
 
-        // 音声ファイルの保存
-        $fileName = 'speech_' . now()->format('Ymd_His') . '.wav';
-        // S3に保存するためのパスを指定
-        $filePath = 'ai_audio/' . $fileName;
+        // S3に音声ファイルを保存
+        $fileName = 'ai_audio/speech_' . now()->format('Ymd_His') . '.wav';
+        Storage::disk('s3')->put($fileName, $response->body());
 
-        // S3にファイルを保存
-        Storage::disk('s3')->put($filePath, $response->body());
-
-        // 修正: 返すパスを相対パスに変更
-        return $filePath; // 保存した音声のファイルパスを返す
+        return $fileName; // S3上のパスを返す
     }
 
     /**

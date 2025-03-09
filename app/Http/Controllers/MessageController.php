@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Message;
 use App\Http\Services\ApiService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -16,18 +17,18 @@ class MessageController extends Controller
             $audio = $request->file('audio');
             // ファイル名を日時に指定して保存
             $timestamp = now()->format('YmdHis');
-            // S3に保存するためのパスを指定
-            $path = "audio/audio_{$timestamp}.wav"; // S3のパス
-
-            // S3にファイルを保存
-            $audio->storeAs('audio', "audio_{$timestamp}.wav", 's3'); // 音声データをS3に保存
+            $path = Storage::disk('s3')->putFileAs(
+                'audio',
+                $audio,
+                "audio_{$timestamp}.wav"
+            );
 
             // データベースに保存する処理
             $message = Message::create([
                 'thread_id' => $threadId,
                 'message_en' => 'dummy',
                 'message_ja' => '',
-                'audio_file_path' => $path, // S3のパスを保存
+                'audio_file_path' => $path,
                 'sender' => 1, // ユーザー
             ]);
 

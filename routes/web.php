@@ -4,9 +4,7 @@ use App\Http\Controllers\ThreadController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MessageController;
 
-
 require __DIR__.'/auth.php';
-
 
 // トップ画面
 Route::get('/', [ThreadController::class, 'index'])->name('top');
