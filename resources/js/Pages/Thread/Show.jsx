@@ -96,28 +96,92 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
 
                 console.log('Extracted file name:', fileName);
 
-                // APIエンドポイントを使用 (絶対パスで指定)
-                const audioApiUrl = `${window.location.origin}/api/audio/${fileName}`;
-                console.log('Accessing audio via API:', audioApiUrl);
+                // 音声ファイルの取得を試みる（複数の方法）
+                let audioBlob = null;
+                let errorMessages = [];
 
-                // 音声ファイルが存在するか確認
-                const response = await fetch(audioApiUrl);
+                // 方法1: Laravelプロキシエンドポイントを使用
+                try {
+                    // 環境変数からAPIプロキシパスを取得
+                    const proxyPath = import.meta.env.VITE_AUDIO_PROXY_PATH || '/api/audio';
 
-                if (!response.ok) {
-                    console.error('Response status:', response.status);
-                    if (response.headers) {
-                        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+                    // APIエンドポイントを使用 (絶対パスで指定)
+                    const audioApiUrl = `${window.location.origin}${proxyPath}/${fileName}`;
+                    console.log('Trying API proxy method:', audioApiUrl);
+
+                    const apiResponse = await fetch(audioApiUrl);
+                    if (apiResponse.ok) {
+                        audioBlob = await apiResponse.blob();
+                        console.log('Successfully fetched audio via API proxy');
+                    } else {
+                        const errorText = await apiResponse.text();
+                        errorMessages.push(`API proxy error: ${apiResponse.status} - ${errorText}`);
+                        console.error('API proxy error:', apiResponse.status, errorText);
                     }
-                    throw new Error(`音声ファイルの取得に失敗しました: ${response.status}`);
+                } catch (apiError) {
+                    errorMessages.push(`API proxy exception: ${apiError.message}`);
+                    console.error('API proxy exception:', apiError);
                 }
 
-                // Content-Typeを確認
-                const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType);
+                // 方法2: 直接R2.devにアクセス (API取得に失敗した場合のフォールバック)
+                if (!audioBlob) {
+                    try {
+                        const r2Url = `https://fls-9e57ee01-7e4d-4e84-83fc-2aa82169155b.r2.dev/ai_audio/${fileName}`;
+                        console.log('Trying direct R2.dev access:', r2Url);
 
-                // Blobとして読み込む
-                const blob = await response.blob();
-                const audioUrl = URL.createObjectURL(blob);
+                        const r2Response = await fetch(r2Url, {
+                            headers: { 'Accept': 'audio/wav,audio/*;q=0.9,*/*;q=0.8' },
+                            mode: 'cors',
+                            credentials: 'omit'
+                        });
+
+                        if (r2Response.ok) {
+                            audioBlob = await r2Response.blob();
+                            console.log('Successfully fetched audio via direct R2.dev access');
+                        } else {
+                            const errorText = await r2Response.text();
+                            errorMessages.push(`R2.dev error: ${r2Response.status} - ${errorText}`);
+                            console.error('R2.dev access error:', r2Response.status, errorText);
+                        }
+                    } catch (r2Error) {
+                        errorMessages.push(`R2.dev exception: ${r2Error.message}`);
+                        console.error('R2.dev access exception:', r2Error);
+                    }
+                }
+
+                // 方法3: 別のR2 URLを試す
+                if (!audioBlob) {
+                    try {
+                        const altR2Url = `https://367be3a2035528943240074d0096e0cd.r2.cloudflarestorage.com/ai_audio/${fileName}`;
+                        console.log('Trying alternative R2 URL:', altR2Url);
+
+                        const altResponse = await fetch(altR2Url, {
+                            headers: { 'Accept': 'audio/wav,audio/*;q=0.9,*/*;q=0.8' },
+                            mode: 'cors',
+                            credentials: 'omit'
+                        });
+
+                        if (altResponse.ok) {
+                            audioBlob = await altResponse.blob();
+                            console.log('Successfully fetched audio via alternative R2 URL');
+                        } else {
+                            const errorText = await altResponse.text();
+                            errorMessages.push(`Alt R2 error: ${altResponse.status} - ${errorText}`);
+                            console.error('Alt R2 access error:', altResponse.status, errorText);
+                        }
+                    } catch (altError) {
+                        errorMessages.push(`Alt R2 exception: ${altError.message}`);
+                        console.error('Alt R2 access exception:', altError);
+                    }
+                }
+
+                // 全ての方法が失敗した場合
+                if (!audioBlob) {
+                    throw new Error(`音声ファイルの取得に失敗しました: ${errorMessages.join('; ')}`);
+                }
+
+                // 音声の再生
+                const audioUrl = URL.createObjectURL(audioBlob);
                 console.log('Created object URL for audio');
 
                 // 新たに再生
