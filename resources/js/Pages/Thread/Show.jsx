@@ -1,8 +1,33 @@
+import React from 'react'
 import { Head } from '@inertiajs/react'
 import { SideMenu } from '../../Components/SideMenu'
 import { HiMicrophone, HiSpeakerphone } from 'react-icons/hi'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
+
+// エラーバウンダリーコンポーネント
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('Error caught by boundary:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return <div className="text-red-500">エラーが発生しました。ページをリロードしてください。</div>;
+        }
+
+        return this.props.children;
+    }
+}
 
 export default function Show({ threads, messages: initialMessages, threadId }) {
     const [messages, setMessages] = useState(initialMessages); // messagesの状態を定義
@@ -54,21 +79,63 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
         }
     };
 
-    const handleAudioPlayback = (audioFilePath) => {
+    const handleAudioPlayback = async (audioFilePath) => {
         if (audioRefs.current[audioFilePath]) {
             // 既に再生中の場合は停止
             audioRefs.current[audioFilePath].pause();
             delete audioRefs.current[audioFilePath];
+            console.log('Audio playback stopped');
         } else {
-            // 新たに再生
-            const audio = new Audio(`/storage/${audioFilePath}`);
-            audioRefs.current[audioFilePath] = audio;
-            audio.play().catch(error => {
-                console.error('音声ファイルの再生に失敗しました:', error);
-            });
-            audio.onended = () => {
-                delete audioRefs.current[audioFilePath]; // 再生終了時に参照を削除
-            };
+            try {
+                // ファイル名を抽出
+                const fileName = audioFilePath.includes('/')
+                    ? audioFilePath.split('/').pop()
+                    : audioFilePath;
+
+                console.log('Extracted file name:', fileName);
+
+                // APIプロキシエンドポイントのみを使用
+                const proxyPath = import.meta.env.VITE_AUDIO_PROXY_PATH || '/api/audio';
+                const audioApiUrl = `${window.location.origin}${proxyPath}/${fileName}`;
+                console.log('Using API proxy method:', audioApiUrl);
+
+                const apiResponse = await fetch(audioApiUrl);
+                if (!apiResponse.ok) {
+                    throw new Error(`API error: ${apiResponse.status}`);
+                }
+
+                const audioBlob = await apiResponse.blob();
+                console.log('Successfully fetched audio via API proxy');
+
+                // 音声の再生
+                const audioUrl = URL.createObjectURL(audioBlob);
+                console.log('Created object URL for audio');
+
+                // 新たに再生
+                const audio = new Audio();
+                audio.src = audioUrl;
+
+                // メタデータがロードされたら再生開始
+                audio.onloadedmetadata = () => {
+                    audioRefs.current[audioFilePath] = audio;
+                    audio.play().catch(error => {
+                        console.error('音声ファイルの再生に失敗しました:', error);
+                    });
+                };
+
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl); // Blobの解放
+                    delete audioRefs.current[audioFilePath];
+                };
+
+                audio.onerror = (e) => {
+                    console.error('音声ファイルの読み込みに失敗しました:', e);
+                    URL.revokeObjectURL(audioUrl);
+                    delete audioRefs.current[audioFilePath];
+                };
+            } catch (error) {
+                console.error('音声ファイルの処理に失敗しました:', error);
+            }
         }
     };
 
@@ -100,28 +167,29 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
     };
 
     useEffect(() => {
-        // 最新のメッセージの音声ファイルを再生
-        const latestMessage = messages[messages.length - 1];
-        if (latestMessage && latestMessage.audio_file_path) {
-            const audio = new Audio(`/storage/${latestMessage.audio_file_path}`);
-            audio.play().catch(error => {
-                console.error('音声ファイルの再生に失敗しました:', error);
-            });
+        const playLatestMessage = async () => {
+            // 最新のメッセージの音声ファイルを再生
+            const latestMessage = messages[messages.length - 1];
+            if (latestMessage && latestMessage.audio_file_path) {
+                await handleAudioPlayback(latestMessage.audio_file_path);
 
-            // スクロールを一番下に設定
-            const messageContainer = document.getElementById('message-container');
-            if (messageContainer) {
-                messageContainer.scrollTop = messageContainer.scrollHeight; // スクロール位置を一番下に設定
+                // スクロールを一番下に設定
+                const messageContainer = document.getElementById('message-container');
+                if (messageContainer) {
+                    messageContainer.scrollTop = messageContainer.scrollHeight;
+                }
             }
-        }
+        };
+
+        playLatestMessage();
     }, []);
 
     return (
-        <>
+        <ErrorBoundary>
             <Head title="Show" />
-            {isLoading && ( // ローディングアニメーションの表示
+            {isLoading && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="loader border-4 border-t-4 border-t-blue-500 border-gray-300 rounded-full w-16 h-16 animate-spin"></div> {/* TailwindCSSを使用したローディングアニメーション */}
+                    <div className="loader border-4 border-t-4 border-t-blue-500 border-gray-300 rounded-full w-16 h-16 animate-spin"></div>
                 </div>
             )}
             <div className={`flex h-screen overflow-hidden ${isLoading ? 'pointer-events-none' : ''}`}>
@@ -169,7 +237,7 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                         </div>
                         <div className="flex justify-end pb-10">
                             <button
-                                className={`bg-gray-600 p-6 rounded-full ${isRecording ? 'bg-red-600' : ''}`}
+                                className={`bg-gray-600 p-6 rounded-full ${isRecording ? 'bg-red-600' : 'bg-green-600'}`}
                                 onClick={handleRecording}
                             >
                                 <HiMicrophone size={32} />
@@ -178,6 +246,6 @@ export default function Show({ threads, messages: initialMessages, threadId }) {
                     </div>
                 </div>
             </div>
-        </>
+        </ErrorBoundary>
     )
 }
