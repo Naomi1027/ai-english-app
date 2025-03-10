@@ -20,3 +20,11 @@ Route::post('/thread/{threadId}/message/{messageId}/translate', [MessageControll
     ->name('message.translate')
     ->where('threadId', '[0-9]+')
     ->where('messageId', '[0-9]+');
+
+    // routes/web.php に追加
+use App\Http\Controllers\AudioProxyController;
+
+// 音声ファイルプロキシルート - web.phpに直接追加
+Route::get('/api/audio/{filePath}', [AudioProxyController::class, 'getAudio']);
+Route::options('/api/audio/{filePath}', [AudioProxyController::class, 'handleOptions']);
+Route::options('/api/audio', [AudioProxyController::class, 'handleOptions']);

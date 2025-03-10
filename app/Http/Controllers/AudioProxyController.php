@@ -21,8 +21,11 @@ class AudioProxyController extends Controller
             // ファイル名をデコード
             $filePath = urldecode($filePath);
 
-            // S3ディスク（R2に接続）からファイルを取得
-            $fullPath = 'ai_audio/' . $filePath;
+            // ファイルパスにai_audioが含まれていない場合は追加
+            $fullPath = str_contains($filePath, 'ai_audio/')
+                ? $filePath
+                : 'ai_audio/' . $filePath;
+
             Log::info('Fetching audio file from R2: ' . $fullPath);
 
             // ファイルを3つの方法で試す
